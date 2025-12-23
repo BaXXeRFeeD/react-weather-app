@@ -135,7 +135,9 @@ const App = () => {
                             const windSpeedConverted = units === 'metric' ? (item.wind.speed * 3.6).toFixed(2) : item.wind.speed.toFixed(2);
                             const windUnit = units === 'metric' ? t('kmh') : t('mph');
                             const windDeg = item.wind.deg;
-                            const gradient = temp > 25 ? 'bg-gradient-to-b from-orange-600 to-yellow-100' : temp < 20 ? 'bg-gradient-to-b from-blue-800 to-blue-200' : 'bg-gradient-to-b from-purple-700 to-blue-200';
+                            const hotThreshold = units === 'metric' ? 25 : 77;
+                            const coldThreshold = units === 'metric' ? 20 : 68;
+                            const gradient = temp > hotThreshold ? 'bg-gradient-to-b from-orange-600 to-yellow-100' : temp < coldThreshold ? 'bg-gradient-to-b from-blue-800 to-blue-200' : 'bg-gradient-to-b from-purple-700 to-blue-200';
                             return (
                                 <div key={i} className={`p-4 rounded-3xl shadow-lg w-32 flex flex-col items-center ${gradient} text-black dark:text-white`}>
                                     <p className="text-2xl font-bold">{hour}</p>
