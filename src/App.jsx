@@ -20,14 +20,16 @@ const App = () => {
     const { t, lang } = useI18n();
     const online = useOnlineStatus();
 
-    const [lat, setLat] = useState(37.9838);
-    const [lon, setLon] = useState(23.7275);
-    const [currentCityData, setCurrentCityData] = useState({ name: 'Athens' });
+    const [lat, setLat] = useState(null);
+    const [lon, setLon] = useState(null);
+    const [currentCityData, setCurrentCityData] = useState(null);
     const [history, setHistory] = useLocalStorage('history', []);
+    const [geoLoading, setGeoLoading] = useState(true);
 
     const { current, forecast, air } = useWeather(lat, lon, units, lang);
 
     useEffect(() => {
+        setGeoLoading(true);
         if (position) {
             setLat(position.latitude);
             setLon(position.longitude);
@@ -39,18 +41,16 @@ const App = () => {
                         setCurrentCityData(data[0]);
                         addToHistory(data[0]);
                     }
-                });
+                    setGeoLoading(false);
+                })
+                .catch(() => setGeoLoading(false));
+        } else if (geoError) {
+            setLat(37.9838);
+            setLon(23.7275);
+            setCurrentCityData({ name: 'Athens' });
+            setGeoLoading(false);
         }
-    }, [position]);
-
-    const fetchCityByCoords = async (lat, lon) => {
-        const apiKey = import.meta.env.VITE_OWM_API_KEY;
-        const res = await fetch(
-            `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`
-        );
-        const data = await res.json();
-        return data?.[0] ?? null;
-    };
+    }, [position, geoError]);
 
     const addToHistory = (cityData) => {
         const updated = [cityData, ...history.filter(c => c.name !== cityData.name)].slice(0, 10);
@@ -77,7 +77,6 @@ const App = () => {
         }
     };
 
-
     const handleCurrentLocation = async () => {
         if (!position) {
             if (geoError) console.error(geoError);
@@ -99,11 +98,13 @@ const App = () => {
 
     if (!online) return <ErrorState message={t('offline')} />;
 
-    if (current.loading || forecast.loading || air.loading) return <Loader />;
+    if (geoLoading || current.loading || forecast.loading || air.loading) return <Loader />;
+
+    if (geoError) return <ErrorState message={geoError} />; // Показываем ошибку geo
 
     if (current.error || forecast.error || air.error) return <ErrorState message={t('errorFetching')} />;
 
-    if (!current.data) return <EmptyState />;
+    if (!current.data || !currentCityData) return <EmptyState />;
 
     const currentTime = dayjs().format('HH:mm');
     const currentDate = dayjs().format('dddd, D MMM');
