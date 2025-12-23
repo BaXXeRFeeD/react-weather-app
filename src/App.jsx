@@ -100,7 +100,7 @@ const App = () => {
 
     if (geoLoading || current.loading || forecast.loading || air.loading) return <Loader />;
 
-    if (geoError) return <ErrorState message={geoError} />; // Показываем ошибку geo
+    if (geoError) return <ErrorState message={geoError} />;
 
     if (current.error || forecast.error || air.error) return <ErrorState message={t('errorFetching')} />;
 
